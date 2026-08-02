@@ -1387,45 +1387,5 @@ nav ul li .active {
   .footer p {
     font-size: 10px;
   }
-
-  .comments {
-    padding: 60px 2%;
   }
-
-  .comment-form-container {
-    padding: 15px;
-    margin: 20px auto;
-    border-radius: 15px;
-  }
-
-  .form-input,
-  .form-textarea {
-    padding: 8px 10px;
-    font-size: 12px;
-    border-radius: 8px;
-  }
-
-  .submit-btn {
-    padding: 8px 15px;
-    font-size: 12px;
-    border-radius: 8px;
-  }
-
-  .comment-card {
-    padding: 12px;
-    border-radius: 8px;
-  }
-
-  .comment-author {
-    font-size: 13px;
-  }
-
-  .comment-text {
-    font-size: 12px;
-  }
-
-  .delete-btn {
-    font-size: 11px;
-    padding: 4px 8px;
-  }
-}
+    
