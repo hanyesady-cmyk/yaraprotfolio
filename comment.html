@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Comments</title>
+<style>
+  :root{
+    --bg:#121212;
+    --card:#1e1e1e;
+    --card-hover:#242424;
+    --text:#e8e8e8;
+    --muted:#9a9a9a;
+    --accent:#4f9dff;
+    --danger:#ff5c5c;
+    --border:#2c2c2c;
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:Segoe UI, Arial, sans-serif;
+    max-width:600px;
+    margin:40px auto;
+    padding:0 16px;
+  }
+  h2{margin-bottom:20px;}
+  .form-box{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:16px;
+    margin-bottom:24px;
+  }
+  input, textarea{
+    width:100%;
+    background:#151515;
+    border:1px solid var(--border);
+    color:var(--text);
+    border-radius:6px;
+    padding:10px;
+    margin-bottom:10px;
+    font-size:14px;
+    resize:none;
+  }
+  button{
+    cursor:pointer;
+    border:none;
+    border-radius:6px;
+    padding:8px 14px;
+    font-size:14px;
+    font-weight:600;
+  }
+  .btn-primary{
+    background:var(--accent);
+    color:#fff;
+  }
+  .btn-primary:hover{background:#3f8ce8;}
+
+  .comment{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 16px;
+    margin-bottom:14px;
+    transition:.2s;
+  }
+  .comment:hover{background:var(--card-hover);}
+  .comment-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:6px;
+  }
+  .comment-name{font-weight:600;color:var(--accent);}
+  .comment-text{margin:6px 0 10px 0;line-height:1.4;white-space:pre-wrap;}
+  .comment-actions{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .icon-btn{
+    background:transparent;
+    color:var(--muted);
+    padding:4px 10px;
+    border:1px solid var(--border);
+    border-radius:6px;
+    font-size:13px;
+  }
+  .icon-btn:hover{color:var(--text);border-color:var(--accent);}
+  .like-btn.liked{color:#ff4f7b;border-color:#ff4f7b;}
+  .delete-btn:hover{color:var(--danger);border-color:var(--danger);}
+  .edit-textarea{margin-top:8px;}
+  .save-btn{background:#2ecc71;color:#111;}
+  .cancel-btn{background:transparent;color:var(--muted);border:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<h2>💬 Comments</h2>
+
+<div class="form-box">
+  <input type="text" id="nameInput" placeholder="Your name">
+  <textarea id="commentInput" rows="3" placeholder="Write a comment..."></textarea>
+  <button class="btn-primary" onclick="addComment()">Post Comment</button>
+</div>
+
+<div id="commentsList"></div>
+
+<script>
+let comments = [];
+let currentUser = "";
+
+function addComment(){
+  const nameInput = document.getElementById('nameInput');
+  const commentInput = document.getElementById('commentInput');
+  const name = nameInput.value.trim();
+  const text = commentInput.value.trim();
+
+  if(!name || !text){
+    alert("Please enter your name and a comment.");
+    return;
+  }
+
+  currentUser = name;
+
+  comments.push({
+    id: Date.now(),
+    name: name,
+    text: text,
+    likes: 0,
+    liked: false,
+    editing: false
+  });
+
+  commentInput.value = "";
+  renderComments();
+}
+
+function deleteComment(id){
+  comments = comments.filter(c => c.id !== id);
+  renderComments();
+}
+
+function toggleEdit(id){
+  comments = comments.map(c =>
+    c.id === id ? {...c, editing: !c.editing} : c
+  );
+  renderComments();
+}
+
+function saveEdit(id){
+  const textarea = document.getElementById('edit-' + id);
+  const newText = textarea.value.trim();
+  if(!newText) return;
+
+  comments = comments.map(c =>
+    c.id === id ? {...c, text: newText, editing: false} : c
+  );
+  renderComments();
+}
+
+function toggleLike(id){
+  comments = comments.map(c => {
+    if(c.id === id){
+      return {
+        ...c,
+        liked: !c.liked,
+        likes: c.liked ? c.likes - 1 : c.likes + 1
+      };
+    }
+    return c;
+  });
+  renderComments();
+}
+
+function renderComments(){
+  const list = document.getElementById('commentsList');
+  list.innerHTML = "";
+
+  comments.slice().reverse().forEach(c => {
+    const div = document.createElement('div');
+    div.className = "comment";
+
+    const isOwner = c.name === currentUser;
+
+    div.innerHTML = `
+      <div class="comment-header">
+        <span class="comment-name">${escapeHtml(c.name)}</span>
+      </div>
+
+      ${c.editing ? `
+        <textarea id="edit-${c.id}" class="edit-textarea" rows="3">${escapeHtml(c.text)}</textarea>
+        <div class="comment-actions">
+          <button class="icon-btn save-btn" onclick="saveEdit(${c.id})">Save</button>
+          <button class="icon-btn cancel-btn" onclick="toggleEdit(${c.id})">Cancel</button>
+        </div>
+      ` : `
+        <div class="comment-text">${escapeHtml(c.text)}</div>
+        <div class="comment-actions">
+          <button class="icon-btn like-btn ${c.liked ? 'liked' : ''}" onclick="toggleLike(${c.id})">
+            ❤ ${c.likes}
+          </button>
+          ${isOwner ? `
+            <button class="icon-btn" onclick="toggleEdit(${c.id})">Edit</button>
+            <button class="icon-btn delete-btn" onclick="deleteComment(${c.id})">Delete</button>
+          ` : ``}
+        </div>
+      `}
+    `;
+
+    list.appendChild(div);
+  });
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+
+</body>
+</html>
+<h1>Mohamed</h1>
+<section class="hero">
+    <p>Full Stack Web Developer</p>
+</section>
+<div id="mohamed"></div>
+<section id="mohamed"></section>
